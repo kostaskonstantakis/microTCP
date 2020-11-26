@@ -10,7 +10,7 @@
  * (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
+B * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
@@ -20,18 +20,21 @@
 
 #include "microtcp.h"
 #include "../utils/crc32.h"
-
+//#include <stdio.h>
+#include <stdio.h>
+#include <unistd.h>
 microtcp_sock_t
+
 microtcp_socket (int domain, int type, int protocol)
 {
     //socket creation and verification
     microtcp_sock_t sockfd;/* newsockfd is microtcp_sock_t variable */
-    sockfd.state = "UNKNOWN";
+    sockfd.state = 1;//"UNKNOWN";
     /*First we must call the socket function specyfying the communication protocol (TCP based on UDP)*/
-    sockfd = socket(domain, type, protocol); /*domain,type,and protocol are given but it will be UDP*/;
-    if (sockfd < 0) {
-        printf("failed to create socket"); //or error
-        exit(0);
+    sockfd.sd = socket(domain, type, protocol); /*domain,type,and protocol are given but it will be UDP*/;
+    if (sockfd.sd < 0) {
+        perror("failed to create socket");//printf("failed to create socket"); //or error
+        //return 0;//exit(0);
     }
     return sockfd; 
     
@@ -43,13 +46,13 @@ microtcp_bind (microtcp_sock_t *socket, const struct sockaddr *address,
 {
     //Must we assign IP,PORT?
     /*The bind() assigns a local protocol address to a socket. With the Internet protocols, the address is the combination of an IPv4 or IPv6 address (32-bit or 128-bit) address along with a 16 bit TCP port number.*/
-    if ((bind(socket, address, sizeof(address))) != 0) {
-        printf("socket bind failed...\n");
-        exit(0);
+    if ((bind(*socket->sd, address, sizeof(*address))) != 0) {
+        //printf("socket bind failed...\n");
+        return 0;//exit(0);
     }
     else
-        printf("Socket successfully binded..\n");
-
+        //printf("Socket successfully binded..\n");
+	return 1;
 
 }
 
@@ -58,8 +61,8 @@ microtcp_connect (microtcp_sock_t *socket, const struct sockaddr *address,
                   socklen_t address_len)
 {
     
-    if (connect(socket, address, sizeof(address_len)) < 0)
-            error("ERROR connecting");
+    if (connect(*socket->sd, address, sizeof(address_len)) < 0)
+            perror("ERROR connecting");
 
 }
 
@@ -68,11 +71,11 @@ microtcp_accept (microtcp_sock_t *socket, struct sockaddr *address,
                  socklen_t address_len)
 {
     microtcp_sock_t connfd;                 /* newsockfd is microtcp_sock_t variable */
-    connfd.state = "ESTABLISHED";
+    connfd.state = 2;
     /*must create the newsockfd*/
-    connfd = accept(socket,address,sizeof(address_len));
-    if (connfd < 0)
-        error("ERROR on accept");
+    connfd = accept(*socket->sd,address,sizeof(*address_len));
+    if (connfd.sd < 0)
+        perror("ERROR on accept");
 
     else
         printf("server accept the client..\n");
@@ -88,12 +91,12 @@ ssize_t
 microtcp_send (microtcp_sock_t *socket, const void *buffer, size_t length,
                int flags)
 {
-    n = 0;
+    int n = 0;
     // copy server message in the buffer
-    while ((buff[n++] = getchar()) != '\n');
+    while ((buffer[n++] = getchar()) != '\n');
 
     // and send the buffer to client
-    write(socket, buff, sizeof(buff));
+    write(*socket->sd, buffer, sizeof(buffer));
 }
 
 ssize_t
