@@ -47,13 +47,14 @@ microtcp_bind (microtcp_sock_t *socket, const struct sockaddr *address,
 {
     //Must we assign IP,PORT?
     /*The bind() assigns a local protocol address to a socket. With the Internet protocols, the address is the combination of an IPv4 or IPv6 address (32-bit or 128-bit) address along with a 16 bit TCP port number.*/
-    if ((bind(socket->sd, address, address_len)) != 0) {
+    //if ((bind(socket->sd, address, address_len)) != 0) {
         //printf("socket bind failed...\n");
-        return 0;//exit(0);
-    }
-    else
+      //  return 1;//exit(0);
+   /// }
+    //else
         //printf("Socket successfully binded..\n");
-	return 1;
+//	return 0;
+	return bind(socket->sd, address, address_len);
 
 }
 
@@ -62,10 +63,10 @@ microtcp_connect (microtcp_sock_t *socket, const struct sockaddr *address,
                   socklen_t address_len)
 {
     
-    if (connect(socket->sd, address, address_len) < 0)
-            return 0;//perror("ERROR connecting");
+    return connect(socket->sd, address, address_len);
+            //return 0;//perror("ERROR connecting");
 
-    return 1;
+    //return 1;
 }
 
 int
@@ -75,13 +76,13 @@ microtcp_accept (microtcp_sock_t *socket, struct sockaddr *address,
     //microtcp_sock_t connfd;                 /* newsockfd is microtcp_sock_t variable */
     //connfd.state = 2;
     /*must create the newsockfd*/
-    int connfd = accept(socket->sd,address,&address_len);
-    if (connfd < 0)
+    return accept(socket->sd,address,&address_len);
+    //if (connfd < 0)
         //perror("ERROR on accept");
-	return 0;
+//	return 0;
 
-    else
-        return 1;//printf("server accept the client..\n");
+  //  else
+    //    return 1;//printf("server accept the client..\n");
 }
 
 int

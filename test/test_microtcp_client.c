@@ -61,12 +61,14 @@ void func(int sockfd)
 
 int main() 
 { 
-	int sockfd, connfd; 
+
+	microtcp_sock_t sockfd;
+	int  connfd; 
 	struct sockaddr_in servaddr, cli; 
 
 	// socket create and varification 
-	sockfd =  microtcp_socket(AF_INET, SOCK_STREAM, 0).sd; 
-	if (sockfd == -1) { 
+	sockfd =  microtcp_socket(AF_INET, SOCK_STREAM, 0); 
+	if (sockfd.sd ==-1) { 
 		printf("socket creation failed...\n"); 
 		exit(0); 
 	} 
@@ -80,7 +82,7 @@ int main()
 	servaddr.sin_port = htons(PORT); 
 
 	// connect the client socket to server socket 
-	if (connect(sockfd, (SA*)&servaddr, sizeof(servaddr)) != 0) { 
+	if (microtcp_connect(&sockfd, (SA*)&servaddr, sizeof(servaddr)) < 0) { 
 		printf("connection with the server failed...\n"); 
 		exit(0); 
 	} 
@@ -88,10 +90,10 @@ int main()
 		printf("connected to the server..\n"); 
 
 	// function for chat 
-	func(sockfd); 
+	func(sockfd.sd); 
 
 	// close the socket 
-	close(sockfd); 
+	close(sockfd.sd); 
 } 
 
 

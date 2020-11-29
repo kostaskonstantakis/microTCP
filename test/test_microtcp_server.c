@@ -95,12 +95,15 @@ void func(int sockfd)
 // Driver function 
 int main() 
 { 
-	int sockfd, connfd, len; 
+	microtcp_sock_t sockfd;
+	//int sockfd, 
+	int connfd, len; 
 	struct sockaddr_in servaddr, cli; 
 
 	// socket create and verification 
-	sockfd = microtcp_socket(AF_INET, SOCK_STREAM, 0).sd; 
-	if (sockfd == -1) { 
+
+	sockfd = microtcp_socket(AF_INET, SOCK_STREAM, 0); 
+	if (sockfd.sd < 0) { 
 		printf("socket creation failed...\n"); 
 		exit(0); 
 	} 
@@ -114,7 +117,7 @@ int main()
 	servaddr.sin_port = htons(PORT); 
 
 	// Binding newly created socket to given IP and verification 
-	if ((bind(sockfd, (SA*)&servaddr, sizeof(servaddr))) != 0) { 
+	if ((microtcp_bind(&sockfd, (SA*)&servaddr, sizeof(servaddr))) == -1) { 
 		printf("socket bind failed...\n"); 
 		exit(0); 
 	} 
@@ -122,7 +125,7 @@ int main()
 		printf("Socket successfully binded..\n"); 
 
 	// Now server is ready to listen and verification 
-	if ((listen(sockfd, 5)) != 0) { 
+	if ((listen(sockfd.sd, 5)) != 0) { 
 		printf("Listen failed...\n"); 
 		exit(0); 
 	} 
@@ -131,7 +134,7 @@ int main()
 	len = sizeof(cli); 
 
 	// Accept the data packet from client and verification 
-	connfd = accept(sockfd, (SA*)&cli, &len); 
+	connfd = microtcp_accept(&sockfd, (SA*)&cli, len); 
 	if (connfd < 0) { 
 		printf("server acccept failed...\n"); 
 		exit(0); 
@@ -143,6 +146,6 @@ int main()
 	func(connfd); 
 
 	// After chatting close the socket 
-	close(sockfd); 
+	close(sockfd.sd); 
 } 
 
