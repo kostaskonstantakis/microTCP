@@ -96,15 +96,17 @@ void func(int sockfd)
 int main() 
 { 
 	microtcp_sock_t sockfd;
+	microtcp_header_t *header=(microtcp_header_t *)malloc(sizeof(microtcp_header_t));
 	//int sockfd, 
 	int connfd, len; 
 	struct sockaddr_in servaddr, cli; 
+	int r=0; //random number
 
 	// socket create and verification 
 
 	sockfd = microtcp_socket(AF_INET, SOCK_STREAM, 0); 
 	if (sockfd.sd < 0) { 
-		printf("socket creation failed...\n"); 
+		printf("Socket creation failed...\n"); 
 		exit(0); 
 	} 
 	else
@@ -118,7 +120,7 @@ int main()
 
 	// Binding newly created socket to given IP and verification 
 	if ((microtcp_bind(&sockfd, (SA*)&servaddr, sizeof(servaddr))) == -1) { 
-		printf("socket bind failed...\n"); 
+		printf("Socket bind failed...\n"); 
 		exit(0); 
 	} 
 	else
@@ -139,9 +141,17 @@ int main()
 		printf("server acccept failed...\n"); 
 		exit(0); 
 	} 
-	else
-		printf("server acccept the client...\n"); 
+	else //handshake happens here probably
+	{
+		header->control = (header->control | (1 << 14)); //set SYN bit=1
+		header->control = (header->control | (1 << 12)); //set ACK bit=1
+                r=rand();//choose random SEQ number.
+                header->seq_number=(uint32_t)r;
+		//header->ack_number=M+1; //ack=ACK+1, from server
 
+                //printf("SEQ=%d\n",header->seq_number);
+		printf("Server acccept the client...\n"); 
+	}
 	// Function for chatting between client and server 
 	func(connfd); 
 

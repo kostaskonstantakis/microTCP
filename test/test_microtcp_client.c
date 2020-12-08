@@ -61,15 +61,16 @@ void func(int sockfd)
 
 int main() 
 { 
-
+	microtcp_header_t *header=(microtcp_header_t *)malloc(sizeof(microtcp_header_t));
 	microtcp_sock_t sockfd;
 	int  connfd; 
 	struct sockaddr_in servaddr, cli; 
+	int r=0; //random number used for SEQ, etc.
 
-	// socket create and varification 
+	// socket create and verification 
 	sockfd =  microtcp_socket(AF_INET, SOCK_STREAM, 0); 
 	if (sockfd.sd ==-1) { 
-		printf("socket creation failed...\n"); 
+		printf("Socket creation failed...\n"); 
 		exit(0); 
 	} 
 	else
@@ -83,14 +84,28 @@ int main()
 
 	// connect the client socket to server socket 
 	if (microtcp_connect(&sockfd, (SA*)&servaddr, sizeof(servaddr)) < 0) { 
-		printf("connection with the server failed...\n"); 
+		printf("Connection with the server failed...\n"); 
 		exit(0); 
 	} 
 	else
-		printf("connected to the server..\n"); 
-
+	{ //starting handshake here 
+		header->control = (header->control | (1 << 14)); //set SYN bit=1.
+		r=rand();//choose random SEQ number.
+		header->seq_number=(uint32_t)r;
+		//printf("SEQ=%d\n",header->seq_number);
+		//after sending the first packet, and receiving from the server
+		r=rand();
+		header->ack_number=(uint32_t)r; //random ACK
+		header->control = (header->control | (1 << 12)); //set ACK bit=1
+		header->seq_number++; //seq=N+1
+		//header->ack_number=M+1; //ack=SEQ+1, from server
+		printf("Connected to the server..\n");
+ 
+	}
 	// function for chat 
 	func(sockfd.sd); 
+
+	//shutdown happens here
 
 	// close the socket 
 	close(sockfd.sd); 

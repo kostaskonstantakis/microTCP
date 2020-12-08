@@ -20,8 +20,8 @@ B * but WITHOUT ANY WARRANTY; without even the implied warranty of
 
 #include "microtcp.h"
 #include "../utils/crc32.h"
-//#include <stdio.h>
-//#include <stdio.h>
+#include <stdio.h>
+#include <errno.h>
 //#include <unistd.h>
 microtcp_sock_t
 
@@ -89,6 +89,13 @@ int
 microtcp_shutdown (microtcp_sock_t *socket, int how)
 {
   /* Your code here */
+        if(shutdown(socket->sd,how)==0) return 0; //success
+        else if(shutdown(socket->sd,how)==-1) return -1; //failure
+        else if(socket==NULL) return EBADF;  //invalid socket or null
+        else if(how!=SHUT_RD||how!=SHUT_WR||how!=SHUT_RDWR) return EINVAL; //invalid value for how argument
+        //else if(!microtcp_connect(socket, socket->address, socket->address_len)) return ENOTCONN;
+        else return ENOTSOCK; //socket doesn't refer to a socket
+
 }
 
 ssize_t
