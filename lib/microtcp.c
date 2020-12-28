@@ -20,9 +20,12 @@ B * but WITHOUT ANY WARRANTY; without even the implied warranty of
 
 #include "microtcp.h"
 #include "../utils/crc32.h"
-//#include <stdio.h>
-//#include <stdio.h>
-//#include <unistd.h>
+#include <stdio.h>
+#include <errno.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <unistd.h>
+#include <stdlib.h>
 microtcp_sock_t
 
 microtcp_socket (int domain, int type, int protocol)
@@ -89,24 +92,67 @@ int
 microtcp_shutdown (microtcp_sock_t *socket, int how)
 {
   /* Your code here */
+	return shutdown(socket->sd,how);
+        //if(shutdown(socket->sd,how)==0) return 0; //success
+        //else if(shutdown(socket->sd,how)==-1) return -1; //failure
+        //else if(socket==NULL) return EBADF;  //invalid socket or null
+        //else if(how!=SHUT_RD||how!=SHUT_WR||how!=SHUT_RDWR) return EINVAL; //invalid value for how argument
+        //else return ENOTSOCK; //socket doesn't refer to a socket
+
 }
 
 ssize_t
 microtcp_send (microtcp_sock_t *socket, const void *buffer, size_t length,
                int flags)
 {
-
-//    int n = 0;
+//more...
+size_t remaining, data_sent,bytes_to_send;
+size_t cwnd,flow_ctrl_win;
+int i=0;
+int chunks=0;
+remaining = length;
+while(data_sent < length ){
+bytes_to_send = min(flow_ctrl_win , cwnd , remaining );
+chunks = bytes_to_send / MICROTCP_MSS;
+for(i = 0; i < chunks; i++){
+sendto(socket->sd, buffer, length, flags, NULL, 0);
+}
+/* Check if there is a semi -filled chunk */
+if(bytes_to_send % MICROTCP_MSS ){
+chunks ++;
+sendto(socket->sd, buffer, length, flags, NULL, 0);
+}
+/* Get the ACKs */
+for(i = 0; i < chunks; i++){
+recvfrom(socket->sd, (void *)buffer, length, flags, NULL, NULL);
+}
+/* Retransmissions */
+/* Update window */
+/* Update congestion control */
+remaining -= bytes_to_send;
+data_sent += bytes_to_send;
+//....
+//    int j = 0;
     // copy server message in the buffer
-//    while ((buffer[n++] = getchar()) != '\n');
+//    while ((buffer[j++] = getchar()) != '\n');
 
     // and send the buffer to client
-//    write(*socket->sd, buffer, sizeof(buffer));
+//    sendto(*socket->sd, buffer, sizeof(buffer), flags, NULL, 0);
+}
+return sendto(socket->sd, buffer, length, flags, NULL, 0);
 }
 
 ssize_t
 microtcp_recv (microtcp_sock_t *socket, void *buffer, size_t length, int flags)
 {
   /* Your code here */
+	return recvfrom(socket->sd, buffer, length, flags, NULL, NULL);
 }
 
+size_t
+min(size_t flow_ctrl_win , size_t cwnd , size_t remaining)
+{
+	if(flow_ctrl_win<cwnd && flow_ctrl_win<remaining) return flow_ctrl_win;
+	else if(flow_ctrl_win>cwnd && cwnd<remaining) return cwnd;
+	else return remaining;
+}

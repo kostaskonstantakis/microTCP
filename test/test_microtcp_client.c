@@ -23,7 +23,7 @@
  * This file is already inserted at the build system.
  */
 
-//#include<stdio.h>
+
 #include <unistd.h>
 
 #include <sys/socket.h>
@@ -38,20 +38,22 @@
 #define MAX 80 
 #define PORT 8080 
 #define SA struct sockaddr 
+
+char buff[MAX];
+
 void func(int sockfd) 
 { 
-	char buff[MAX]; 
 	int n; 
 	for (;;) { 
 		bzero(buff, sizeof(buff)); 
-		printf("Enter the string : "); 
+		printf("To server: "); 
 		n = 0; 
 		while ((buff[n++] = getchar()) != '\n') 
 			; 
 		write(sockfd, buff, sizeof(buff)); 
 		bzero(buff, sizeof(buff)); 
 		read(sockfd, buff, sizeof(buff)); 
-		printf("From Server : %s", buff); 
+		printf("\tFrom Server : %s", buff); 
 		if ((strncmp(buff, "exit", 4)) == 0) { 
 			printf("Client Exit...\n"); 
 			break; 
@@ -61,15 +63,16 @@ void func(int sockfd)
 
 int main() 
 { 
-
+	microtcp_header_t *header=(microtcp_header_t *)malloc(sizeof(microtcp_header_t));
 	microtcp_sock_t sockfd;
 	int  connfd; 
 	struct sockaddr_in servaddr, cli; 
+	int r=0; //random number used for SEQ, etc.
 
-	// socket create and varification 
+	// socket create and verification 
 	sockfd =  microtcp_socket(AF_INET, SOCK_STREAM, 0); 
 	if (sockfd.sd ==-1) { 
-		printf("socket creation failed...\n"); 
+		printf("Socket creation failed...\n"); 
 		exit(0); 
 	} 
 	else
@@ -83,15 +86,42 @@ int main()
 
 	// connect the client socket to server socket 
 	if (microtcp_connect(&sockfd, (SA*)&servaddr, sizeof(servaddr)) < 0) { 
-		printf("connection with the server failed...\n"); 
+		printf("Connection to the server failed...\n"); 
 		exit(0); 
 	} 
 	else
-		printf("connected to the server..\n"); 
-
+	{ //starting handshake here 
+		header->control = (header->control | (1 << 14)); //set SYN bit=1.
+		r=rand();//choose random SEQ number.
+		sockfd.seq_number=(uint32_t)r;
+		//connfd=send(sockfd.sd, buff, sizeof(buff), 0);//send();
+		//connfd=recv(sockfd.sd, buff, sizeof(buff), 0); //recv()
+		r=rand();
+		sockfd.ack_number=(uint32_t)r; //random ACK
+		header->control = (header->control | (1 << 12)); //set ACK bit=1
+		sockfd.seq_number++; //seq=N+1
+                //connfd=recv(sockfd.sd, buff, sizeof(buff), 0); //recv()
+		//connfd=send(sockfd.sd, buff, sizeof(buff), 0);//send();
+		printf("Connected to the server..\n");
+ 
+	}
 	// function for chat 
 	func(sockfd.sd); 
 
+	//shutdown happens here
+	 header->control = (header->control | (1 << 12)); //set ACK bit=1
+	 header->control = (header->control | (1 << 15)); //set FIN bit=1
+	 r=rand();//choose random SEQ number.
+         sockfd.seq_number=(uint32_t)r;
+	 //connfd=send(sockfd.sd, buff, sizeof(buff), 0);//send();
+	 //connfd=recv(sockfd.sd, buff, sizeof(buff), 0); //recv()
+	 //set state after receiving ACK from server
+	 sockfd.state=CLOSING_BY_HOST;	
+	 //connfd=recv(sockfd.sd, buff, sizeof(buff), 0); //recv()
+	 header->control = (header->control | (1 << 12)); //set ACK bit=1
+	 //connfd=send(sockfd.sd, buff, sizeof(buff), 0);//send();
+	 sockfd.state=CLOSED;
+	 microtcp_shutdown(&sockfd, SHUT_RDWR);
 	// close the socket 
 	close(sockfd.sd); 
 } 

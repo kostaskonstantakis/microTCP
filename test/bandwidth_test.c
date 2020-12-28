@@ -190,7 +190,7 @@ client_tcp (const char *serverip, uint16_t server_port, const char *file)
     return -EXIT_FAILURE;
   }
 
-  if ((sock = socket (AF_INET, SOCK_STREAM, IPPROTO_TCP)) == -1) {
+  if ((sock = socket (AF_INET, SOCK_STREAM, IPPROTO_TCP)) == -1) { 
     perror ("Opening TCP socket");
     free (buffer);
     fclose (fp);

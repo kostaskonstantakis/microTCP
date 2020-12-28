@@ -62,10 +62,11 @@
 #define PORT 8080 
 #define SA struct sockaddr 
 
+char buff[MAX];
+
 // Function designed for chat between client and server. 
 void func(int sockfd) 
 { 
-	char buff[MAX]; 
 	int n; 
 	// infinite loop for chat 
 	for (;;) { 
@@ -96,15 +97,17 @@ void func(int sockfd)
 int main() 
 { 
 	microtcp_sock_t sockfd;
+	microtcp_header_t *header=(microtcp_header_t *)malloc(sizeof(microtcp_header_t));
 	//int sockfd, 
 	int connfd, len; 
 	struct sockaddr_in servaddr, cli; 
+	int r=0; //random number
 
 	// socket create and verification 
 
-	sockfd = microtcp_socket(AF_INET, SOCK_STREAM, 0); 
+	sockfd = microtcp_socket(AF_INET, SOCK_STREAM, 0); //SOCK_STREAM 
 	if (sockfd.sd < 0) { 
-		printf("socket creation failed...\n"); 
+		printf("Socket creation failed...\n"); 
 		exit(0); 
 	} 
 	else
@@ -118,7 +121,7 @@ int main()
 
 	// Binding newly created socket to given IP and verification 
 	if ((microtcp_bind(&sockfd, (SA*)&servaddr, sizeof(servaddr))) == -1) { 
-		printf("socket bind failed...\n"); 
+		printf("Socket bind failed...\n"); 
 		exit(0); 
 	} 
 	else
@@ -139,11 +142,38 @@ int main()
 		printf("server acccept failed...\n"); 
 		exit(0); 
 	} 
-	else
-		printf("server acccept the client...\n"); 
-
+	else //handshake happens here probably
+	{
+	
+		//receive 1st packet from client
+		//connfd=recv(sockfd.sd, buff, sizeof(buff), 0);
+		header->control = (header->control | (1 << 14)); //set SYN bit=1
+		header->control = (header->control | (1 << 12)); //set ACK bit=1
+		//connfd=send(sockfd.sd, buff, sizeof(buff), 0); //send()
+                r=rand();//choose random SEQ number.
+                sockfd.seq_number=(uint32_t)r;
+		//header->ack_number=M+1; //ack=ACK+1, from server
+		//connfd=send(sockfd.sd, buff, sizeof(buff), 0);
+		//connfd=recv(sockfd.sd, buff, sizeof(buff), 0);
+		printf("Server acccepts the client...\n"); 
+	}
 	// Function for chatting between client and server 
 	func(connfd); 
+
+	
+	//shutdown
+	//connfd=recv(sockfd.sd, buff, sizeof(buff), 0); //recv()
+	header->control = (header->control | (1 << 12)); //set ACK bit=1
+	sockfd.ack_number++; //ACK=ACK+1
+	sockfd.state=CLOSING_BY_PEER; //set state
+	r=rand();//choose random SEQ number.
+        sockfd.seq_number=(uint32_t)r;
+	//connfd=send(sockfd.sd, buff, sizeof(buff), 0); //send()
+	header->control = (header->control | (1 << 15)); //set FIN bit=1
+	//connfd=send(sockfd.sd, buff, sizeof(buff), 0);	//send()
+	//connfd=recv(sockfd.sd, buff, sizeof(buff), 0); //recv()
+	sockfd.state=CLOSED; //state closed. Connection terminated
+
 
 	// After chatting close the socket 
 	close(sockfd.sd); 
