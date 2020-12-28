@@ -144,6 +144,7 @@ int main()
 	} 
 	else //handshake happens here probably
 	{
+<<<<<<< HEAD
 	
 		//receive 1st packet from client
 		//connfd=recv(sockfd.sd, buff, sizeof(buff), 0);
@@ -156,6 +157,16 @@ int main()
 		//connfd=send(sockfd.sd, buff, sizeof(buff), 0);
 		//connfd=recv(sockfd.sd, buff, sizeof(buff), 0);
 		printf("Server acccepts the client...\n"); 
+=======
+		header->control = (header->control | (1 << 14)); //set SYN bit=1
+		header->control = (header->control | (1 << 12)); //set ACK bit=1
+                r=rand();//choose random SEQ number.
+                header->seq_number=(uint32_t)r;
+		//header->ack_number=M+1; //ack=ACK+1, from server
+
+                //printf("SEQ=%d\n",header->seq_number);
+		printf("Server acccept the client...\n"); 
+>>>>>>> 2ea6947de1d840ba4907bdf8deea56d6017afe2e
 	}
 	// Function for chatting between client and server 
 	func(connfd); 

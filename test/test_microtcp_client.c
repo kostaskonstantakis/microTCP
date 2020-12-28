@@ -86,13 +86,18 @@ int main()
 
 	// connect the client socket to server socket 
 	if (microtcp_connect(&sockfd, (SA*)&servaddr, sizeof(servaddr)) < 0) { 
+<<<<<<< HEAD
 		printf("Connection to the server failed...\n"); 
+=======
+		printf("Connection with the server failed...\n"); 
+>>>>>>> 2ea6947de1d840ba4907bdf8deea56d6017afe2e
 		exit(0); 
 	} 
 	else
 	{ //starting handshake here 
 		header->control = (header->control | (1 << 14)); //set SYN bit=1.
 		r=rand();//choose random SEQ number.
+<<<<<<< HEAD
 		sockfd.seq_number=(uint32_t)r;
 		//connfd=send(sockfd.sd, buff, sizeof(buff), 0);//send();
 		//connfd=recv(sockfd.sd, buff, sizeof(buff), 0); //recv()
@@ -102,6 +107,16 @@ int main()
 		sockfd.seq_number++; //seq=N+1
                 //connfd=recv(sockfd.sd, buff, sizeof(buff), 0); //recv()
 		//connfd=send(sockfd.sd, buff, sizeof(buff), 0);//send();
+=======
+		header->seq_number=(uint32_t)r;
+		//printf("SEQ=%d\n",header->seq_number);
+		//after sending the first packet, and receiving from the server
+		r=rand();
+		header->ack_number=(uint32_t)r; //random ACK
+		header->control = (header->control | (1 << 12)); //set ACK bit=1
+		header->seq_number++; //seq=N+1
+		//header->ack_number=M+1; //ack=SEQ+1, from server
+>>>>>>> 2ea6947de1d840ba4907bdf8deea56d6017afe2e
 		printf("Connected to the server..\n");
  
 	}
@@ -109,6 +124,7 @@ int main()
 	func(sockfd.sd); 
 
 	//shutdown happens here
+<<<<<<< HEAD
 	 header->control = (header->control | (1 << 12)); //set ACK bit=1
 	 header->control = (header->control | (1 << 15)); //set FIN bit=1
 	 r=rand();//choose random SEQ number.
@@ -122,6 +138,9 @@ int main()
 	 //connfd=send(sockfd.sd, buff, sizeof(buff), 0);//send();
 	 sockfd.state=CLOSED;
 	 microtcp_shutdown(&sockfd, SHUT_RDWR);
+=======
+
+>>>>>>> 2ea6947de1d840ba4907bdf8deea56d6017afe2e
 	// close the socket 
 	close(sockfd.sd); 
 } 
