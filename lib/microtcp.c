@@ -22,16 +22,12 @@ B * but WITHOUT ANY WARRANTY; without even the implied warranty of
 #include "../utils/crc32.h"
 #include <stdio.h>
 #include <errno.h>
-<<<<<<< HEAD
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <unistd.h>
 #include <stdlib.h>
-=======
-//#include <unistd.h>
->>>>>>> 2ea6947de1d840ba4907bdf8deea56d6017afe2e
-microtcp_sock_t
 
+microtcp_sock_t
 microtcp_socket (int domain, int type, int protocol)
 {
     //socket creation and verification
@@ -96,21 +92,12 @@ int
 microtcp_shutdown (microtcp_sock_t *socket, int how)
 {
   /* Your code here */
-<<<<<<< HEAD
 	return shutdown(socket->sd,how);
         //if(shutdown(socket->sd,how)==0) return 0; //success
         //else if(shutdown(socket->sd,how)==-1) return -1; //failure
         //else if(socket==NULL) return EBADF;  //invalid socket or null
         //else if(how!=SHUT_RD||how!=SHUT_WR||how!=SHUT_RDWR) return EINVAL; //invalid value for how argument
         //else return ENOTSOCK; //socket doesn't refer to a socket
-=======
-        if(shutdown(socket->sd,how)==0) return 0; //success
-        else if(shutdown(socket->sd,how)==-1) return -1; //failure
-        else if(socket==NULL) return EBADF;  //invalid socket or null
-        else if(how!=SHUT_RD||how!=SHUT_WR||how!=SHUT_RDWR) return EINVAL; //invalid value for how argument
-        //else if(!microtcp_connect(socket, socket->address, socket->address_len)) return ENOTCONN;
-        else return ENOTSOCK; //socket doesn't refer to a socket
->>>>>>> 2ea6947de1d840ba4907bdf8deea56d6017afe2e
 
 }
 
