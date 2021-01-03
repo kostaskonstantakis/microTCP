@@ -44,6 +44,7 @@ int
 main(int argc, char **argv) {
   uint16_t port;
 
+//microtcp_sock_t receive_socket;
   /*
    * Register a signal handler so we can terminate the client with
    * Ctrl+C
@@ -53,6 +54,11 @@ main(int argc, char **argv) {
   LOG_INFO("Start receiving traffic from port %u", port);
   /*TODO: Connect using microtcp_connect() */
   while(running) {
+	/*struct timeval timeout;
+        timeout.tv_sec = 0;
+        timeout.tv_usec = MICROTCP_ACK_TIMEOUT_US;
+        if (setsockopt(receive_socket , SOL_SOCKET ,SO_RCVTIMEO , &timeout ,sizeof(struct timeval )) < 0)
+                perror("setsockopt");*/
     /* TODO: Measure time */
     /* TODO: Receive using microtcp_recv()*/
     /* TODO: Measure time */

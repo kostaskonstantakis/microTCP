@@ -38,8 +38,7 @@
 #define MAX 80 
 #define PORT 8080 
 #define SA struct sockaddr 
-
-char buff[MAX];
+char buff[MICROTCP_RECVBUF_LEN];
 
 void func(int sockfd) 
 { 
@@ -92,6 +91,9 @@ int main()
 	else
 	{ //starting handshake here 
 		header->control = (header->control | (1 << 14)); //set SYN bit=1.
+		header->window=MICROTCP_WIN_SIZE;
+		sockfd.cwnd=MICROTCP_INIT_CWND;
+		sockfd.ssthresh=MICROTCP_INIT_SSTHRESH;
 		r=rand();//choose random SEQ number.
 		sockfd.seq_number=(uint32_t)r;
 		//connfd=send(sockfd.sd, buff, sizeof(buff), 0);//send();
@@ -126,6 +128,28 @@ int main()
 	close(sockfd.sd); 
 } 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 //int
 //main(int argc, char **argv)
 //{
@@ -142,3 +166,6 @@ int main()
 ///	return 1;
 
 //}
+
+
+

@@ -22,8 +22,8 @@
  * You can use this file to write a test microTCP server.
  * This file is already inserted at the build system.
  */
-//#include <stdio.h>
-//#include <sys/socket.h> 
+//#include<stdio.h>
+//#include<sys/socket.h> 
 //#include "../lib/microtcp.h"
 //#include "../utils/crc32.h"
 
@@ -62,7 +62,7 @@
 #define PORT 8080 
 #define SA struct sockaddr 
 
-char buff[MAX];
+char buff[MICROTCP_RECVBUF_LEN]; //MAX
 
 // Function designed for chat between client and server. 
 void func(int sockfd) 
@@ -149,6 +149,9 @@ int main()
 		//connfd=recv(sockfd.sd, buff, sizeof(buff), 0);
 		header->control = (header->control | (1 << 14)); //set SYN bit=1
 		header->control = (header->control | (1 << 12)); //set ACK bit=1
+		header->window=MICROTCP_WIN_SIZE;
+                sockfd.cwnd=MICROTCP_INIT_CWND;
+                sockfd.ssthresh=MICROTCP_INIT_SSTHRESH;
 		//connfd=send(sockfd.sd, buff, sizeof(buff), 0); //send()
                 r=rand();//choose random SEQ number.
                 sockfd.seq_number=(uint32_t)r;

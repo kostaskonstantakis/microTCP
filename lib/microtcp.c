@@ -10,7 +10,7 @@
  * (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
-B * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
@@ -26,8 +26,8 @@ B * but WITHOUT ANY WARRANTY; without even the implied warranty of
 #include <sys/socket.h>
 #include <unistd.h>
 #include <stdlib.h>
-
 microtcp_sock_t
+
 microtcp_socket (int domain, int type, int protocol)
 {
     //socket creation and verification
@@ -139,14 +139,21 @@ data_sent += bytes_to_send;
     // and send the buffer to client
 //    sendto(*socket->sd, buffer, sizeof(buffer), flags, NULL, 0);
 }
-return sendto(socket->sd, buffer, length, flags, NULL, 0);
+return (ssize_t)sizeof(buffer);
+//return sendto(socket->sd, buffer, length, flags, NULL, 0);
 }
 
 ssize_t
 microtcp_recv (microtcp_sock_t *socket, void *buffer, size_t length, int flags)
 {
   /* Your code here */
-	return recvfrom(socket->sd, buffer, length, flags, NULL, NULL);
+	struct timeval timeout;
+	timeout.tv_sec = 0;
+	timeout.tv_usec = MICROTCP_ACK_TIMEOUT_US;
+	if (setsockopt(socket , SOL_SOCKET ,SO_RCVTIMEO , &timeout ,sizeof(struct timeval )) < 0) 
+		perror("setsockopt");
+	return (ssize_t)sizeof(buffer);	
+	//return recvfrom(socket->sd, buffer, length, flags, NULL, NULL);
 }
 
 size_t
