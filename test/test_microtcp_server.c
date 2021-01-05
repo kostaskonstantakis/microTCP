@@ -153,6 +153,7 @@ int main()
                 sockfd.cwnd=MICROTCP_INIT_CWND;
                 sockfd.ssthresh=MICROTCP_INIT_SSTHRESH;
 		//connfd=send(sockfd.sd, buff, sizeof(buff), 0); //send()
+		//header->window=header->window-sockfd.cwnd; 
                 r=rand();//choose random SEQ number.
                 sockfd.seq_number=(uint32_t)r;
 		//header->ack_number=M+1; //ack=ACK+1, from server

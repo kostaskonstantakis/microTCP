@@ -26,6 +26,12 @@
 #include <sys/socket.h>
 #include <unistd.h>
 #include <stdlib.h>
+
+// microtcp_header_t *header=(microtcp_header_t *)malloc(sizeof(microtcp_header_t));
+size_t remaining, data_sent,bytes_to_send;
+size_t cwnd,flow_ctrl_win;
+int chunks=0;
+
 microtcp_sock_t
 
 microtcp_socket (int domain, int type, int protocol)
@@ -92,13 +98,13 @@ int
 microtcp_shutdown (microtcp_sock_t *socket, int how)
 {
   /* Your code here */
+	//if((header->control | (1 << 15))) 
 	return shutdown(socket->sd,how);
         //if(shutdown(socket->sd,how)==0) return 0; //success
         //else if(shutdown(socket->sd,how)==-1) return -1; //failure
         //else if(socket==NULL) return EBADF;  //invalid socket or null
         //else if(how!=SHUT_RD||how!=SHUT_WR||how!=SHUT_RDWR) return EINVAL; //invalid value for how argument
         //else return ENOTSOCK; //socket doesn't refer to a socket
-
 }
 
 ssize_t
@@ -106,10 +112,7 @@ microtcp_send (microtcp_sock_t *socket, const void *buffer, size_t length,
                int flags)
 {
 //more...
-size_t remaining, data_sent,bytes_to_send;
-size_t cwnd,flow_ctrl_win;
 int i=0;
-int chunks=0;
 remaining = length;
 while(data_sent < length ){
 bytes_to_send = min(flow_ctrl_win , cwnd , remaining );
@@ -119,7 +122,7 @@ sendto(socket->sd, buffer, length, flags, NULL, 0);
 }
 /* Check if there is a semi -filled chunk */
 if(bytes_to_send % MICROTCP_MSS ){
-chunks ++;
+chunks++;
 sendto(socket->sd, buffer, length, flags, NULL, 0);
 }
 /* Get the ACKs */
@@ -132,6 +135,7 @@ recvfrom(socket->sd, (void *)buffer, length, flags, NULL, NULL);
 remaining -= bytes_to_send;
 data_sent += bytes_to_send;
 //....
+
 //    int j = 0;
     // copy server message in the buffer
 //    while ((buffer[j++] = getchar()) != '\n');
@@ -139,7 +143,7 @@ data_sent += bytes_to_send;
     // and send the buffer to client
 //    sendto(*socket->sd, buffer, sizeof(buffer), flags, NULL, 0);
 }
-return (ssize_t)sizeof(buffer);
+if(socket!=NULL && buffer!=NULL && sizeof(length)!=0 && flags!=0) return (ssize_t)sizeof(buffer);
 //return sendto(socket->sd, buffer, length, flags, NULL, 0);
 }
 
@@ -150,9 +154,9 @@ microtcp_recv (microtcp_sock_t *socket, void *buffer, size_t length, int flags)
 	struct timeval timeout;
 	timeout.tv_sec = 0;
 	timeout.tv_usec = MICROTCP_ACK_TIMEOUT_US;
-	if (setsockopt(socket , SOL_SOCKET ,SO_RCVTIMEO , &timeout ,sizeof(struct timeval )) < 0) 
+	if (setsockopt(socket->sd, SOL_SOCKET ,SO_RCVTIMEO , &timeout ,sizeof(struct timeval )) < 0) 
 		perror("setsockopt");
-	return (ssize_t)sizeof(buffer);	
+	if(socket!=NULL && buffer!=NULL && sizeof(length)!=0 && flags!=0) return (ssize_t)sizeof(buffer);
 	//return recvfrom(socket->sd, buffer, length, flags, NULL, NULL);
 }
 
